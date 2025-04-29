@@ -321,7 +321,7 @@ function initRegionChart() {
               label: function(context) {
                 const label = context.label || '';
                 const value = context.raw || 0;
-                const percentage = (value / totalSuicides * 100).toFixed(3); // 3 decimals
+                const percentage = (value / totalSuicides * 100).toFixed(5); // 3 decimals
                 return `${label}: ${value.toLocaleString()} deaths (${percentage}% of total)`;
               }
             }
