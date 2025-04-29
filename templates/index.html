@@ -31,7 +31,7 @@
         transform: scale(1.05);
     }
     .modal {
-    display: none; /* Ensures modal is hidden on page load */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -53,7 +53,7 @@
     border-radius: 8px;
     max-width: 80%;
     max-height: 80%;
-    overflow: auto; /* Ensures content is scrollable if too large */
+    overflow: auto;
     text-align: center;
     position: relative;
 }
@@ -68,7 +68,6 @@
 }
 </style>
 <body class="bg-gray-100">
-    <!-- Navigation Bar -->
     <div class="bg-black w-full">
         <div class="bg-black container mx-auto p-4 text-white flex justify-between items-center">
             <div class="flex items-center">
@@ -82,7 +81,6 @@
         </div>
     </div>
 
-    <!-- Header Section -->
     <header id="head" class="p-6 text-center bg-yellow-500 shadow-lg">
         <h1 class="text-3xl font-bold text-black">Suicide Rate Analysis</h1>
         <p class="mt-2 text-black text-lg">
@@ -90,12 +88,10 @@
         </p>
     </header>
 
-    <!-- Graphs Section -->
     <section class="container mx-auto p-6">
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold mb-4">Top 20 Countries by Suicide Rate</h2>
             
-            <!-- Year Selector -->
             <div class="mb-6">
                 <label for="year-select" class="block text-lg font-medium text-gray-700 mb-2">Select Year:</label>
                 <select id="year-select" class="p-2 border border-gray-300 rounded-md">
@@ -108,14 +104,13 @@
                 </button>
             </div>
             
-            <!-- Chart Container -->
             <div class="w-full h-96">
                 <canvas id="suicideChart"></canvas>
             </div>
         </div>
         
     </section>
-<!-- Doughnut Chart by Region -->
+
 <section class="container mx-auto p-6">
     <div class="bg-white p-6 rounded-lg shadow-lg">
         <h2 class="text-2xl font-bold mb-4">Suicide Count by Region</h2>
@@ -125,7 +120,6 @@
     </div>
 </section>
 
-<!-- Line Chart by Gender -->
 <section class="container mx-auto p-6">
     <div class="bg-white p-6 rounded-lg shadow-lg">
         <h2 class="text-2xl font-bold mb-4">Suicide Count Trend by Gender</h2>
@@ -135,7 +129,6 @@
     </div>
 </section>
 
-    <!-- Footer -->
     <footer class="bg-black text-white text-center p-4">
         <p>Copyright © 2025 Created by: Rachel, Mario, Rynald</p>
         <section id="about" class="container mx-auto p-6">
@@ -158,25 +151,20 @@
                 </div>
             </div>
         </section>
-        <!-- Economic vs Suicide Charts - Side by Side -->
-
     </footer>
     <script>
         let suicideChart;
     
-        // Function to generate random colors
         function generateColors(count) {
             const colors = [];
             for (let i = 0; i < count; i++) {
-                // Generate HSL colors with fixed saturation and lightness but varying hue
                 const hue = Math.floor(Math.random() * 360);
                 colors.push(`hsl(${hue}, 70%, 60%)`);
-                colors.push(`hsl(${hue}, 70%, 60%)`); // Border color same as fill
+                colors.push(`hsl(${hue}, 70%, 60%)`);
             }
             return colors;
         }
     
-        // Initialize chart when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('suicideChart').getContext('2d');
             suicideChart = new Chart(ctx, {
@@ -236,11 +224,9 @@
                 }
             });
             
-            // Load data for the first year by default
             updateChart();
         });
     
-        // Function to update chart with selected year's data
         function updateChart() {
             const yearSelect = document.getElementById('year-select');
             const selectedYear = yearSelect.value;
@@ -264,11 +250,9 @@
                     return;
                 }
                 
-                // Generate colors for each country
                 const backgroundColors = [];
                 const borderColors = [];
                 
-                // Use a color palette (20 distinct colors)
                 const colorPalette = [
                     '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
                     '#FF9F40', '#8AC24A', '#F06292', '#7986CB', '#A1887F',
@@ -290,212 +274,12 @@
             })
             .catch(error => console.error('Error:', error));
         }
-        let genderChart;
 
-// Initialize gender chart
-function initGenderChart() {
-    const ctx = document.getElementById('genderChart').getContext('2d');
-    
-    fetch('/get_gender_distribution', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        genderChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.percentages,
-                    backgroundColor: [
-                        '#36A2EB', // Male - blue
-                        '#FF6384'  // Female - pink
-                    ],
-                    borderColor: [
-                        '#2980B9', // Darker blue
-                        '#E74C3C'  // Darker pink
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Global Suicide Distribution by Gender',
-                        font: {
-                            size: 18
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const count = data.counts[context.dataIndex];
-                                return `${label}: ${value.toFixed(1)}% (${count.toLocaleString()} deaths)`;
-                            }
-                        }
-                    },
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-// Call this in your DOMContentLoaded event
 document.addEventListener('DOMContentLoaded', function() {
-    // Your existing chart initialization code...
-    initGenderChart();
+    initRegionChart();
+    initGenderTrendChart();
 });
 
-let gdpSuicideChart, employmentSuicideChart;
-
-function initEconomicCharts() {
-    const gdpCtx = document.getElementById('gdpSuicideChart').getContext('2d');
-    const employmentCtx = document.getElementById('employmentSuicideChart').getContext('2d');
-    
-    fetch('/get_economic_vs_suicide', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Prepare data for scatter plots
-        const gdpData = data.map(d => ({x: d.GDPPerCapita, y: d.DeathRatePer100K}));
-        const employmentData = data.map(d => ({x: d.EmploymentPopulationRatio, y: d.DeathRatePer100K}));
-        
-        // Chart 1: GDP vs Suicide Rate
-        gdpSuicideChart = new Chart(gdpCtx, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Countries by Year',
-                    data: gdpData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'GDP Per Capita (USD)'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Suicide Rate (per 100K)'
-                        }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Suicide Rate vs GDP Per Capita',
-                        font: {
-                            size: 16
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const point = data[context.dataIndex];
-                                return [
-                                    `Country: ${point.CountryName}`,
-                                    `Year: ${point.Year}`,
-                                    `GDP: $${point.GDPPerCapita.toFixed(2)}`,
-                                    `Suicide Rate: ${point.DeathRatePer100K.toFixed(2)}`
-                                ];
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Chart 2: Employment vs Suicide Rate
-        employmentSuicideChart = new Chart(employmentCtx, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Countries by Year',
-                    data: employmentData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Employment Rate (%)'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Suicide Rate (per 100K)'
-                        }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Suicide Rate vs Employment Rate',
-                        font: {
-                            size: 16
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const point = data[context.dataIndex];
-                                return [
-                                    `Country: ${point.CountryName}`,
-                                    `Year: ${point.Year}`,
-                                    `Employment: ${point.EmploymentPopulationRatio.toFixed(2)}%`,
-                                    `Suicide Rate: ${point.DeathRatePer100K.toFixed(2)}`
-                                ];
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-// Call this in your DOMContentLoaded event
-document.addEventListener('DOMContentLoaded', function() {
-    initGenderChart();
-    initEconomicCharts();  // Add this line
-});
-
-// Doughnut Chart for Region Distribution
 let regionChart;
 function initRegionChart() {
     const ctx = document.getElementById('regionChart').getContext('2d');
@@ -508,7 +292,6 @@ function initRegionChart() {
     })
     .then(response => response.json())
     .then(data => {
-        // Calculate the total sum of suicides for percentage calculation
         const totalSuicides = data.counts.reduce((acc, count) => acc + count, 0);
         
         regionChart = new Chart(ctx, {
@@ -540,7 +323,6 @@ function initRegionChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                // Calculate percentage
                                 const percentage = (value / totalSuicides * 100).toFixed(2);
                                 return `${label}: ${value.toLocaleString()} deaths (${percentage}% of total)`;
                             }
@@ -556,7 +338,6 @@ function initRegionChart() {
     .catch(error => console.error('Error:', error));
 }
 
-// Line Chart for Suicide Count Trend by Gender
 let genderTrendChart;
 function initGenderTrendChart() {
     const ctx = document.getElementById('genderTrendChart').getContext('2d');
@@ -633,14 +414,6 @@ function initGenderTrendChart() {
     .catch(error => console.error('Error:', error));
 }
 
-
-
-// Call both chart initialization functions when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initRegionChart();
-    initGenderTrendChart();
-});
-
     </script>
 </body>
-</html> 
+</html>

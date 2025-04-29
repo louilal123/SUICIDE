@@ -38,20 +38,7 @@ def get_top_countries():
         'year': year
     })
 
-@app.route('/get_gender_distribution', methods=['POST'])
-def get_gender_distribution():
-    # Calculate total male and female suicide counts across all years/countries
-    gender_data = df_suicide.groupby('Sex')['SuicideCount'].sum().reset_index()
-    
-    # Calculate percentages
-    total = gender_data['SuicideCount'].sum()
-    gender_data['Percentage'] = (gender_data['SuicideCount'] / total) * 100
-    
-    return jsonify({
-        'labels': gender_data['Sex'].tolist(),
-        'counts': gender_data['SuicideCount'].tolist(),
-        'percentages': gender_data['Percentage'].tolist()
-    })
+
 # Add these new endpoints to your existing app.py
 @app.route('/get_region_distribution', methods=['POST'])
 def get_region_distribution():
