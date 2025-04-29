@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lechar">
+    <meta name="author" content="Lechar">
+    <title>Suicide Rate Analytics</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo1.png') }}">
+    <link rel="icon" type="image/x-icon" href="../static/images/Logo1.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<style>
+    .circle-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    .analytics-img {
+        width: 100%;
+        height: 400px;
+        object-fit: contain;
+        transition: transform 0.3s ease-in-out;
+    }
+    .analytics-img:hover {
+        transform: scale(1.05);
+    }
+    .modal {
+    display: none; /* Ensures modal is hidden on page load */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+.graph-container { width: 100%; text-align: center; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
+        .modal-content { margin: auto; width: 80%; height: 80%; background: white; }
+        .close { color: white; font-size: 30px; cursor: pointer; position: absolute; top: 10px; right: 20px; }
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow: auto; /* Ensures content is scrollable if too large */
+    text-align: center;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+<body class="bg-gray-100">
+    <!-- Navigation Bar -->
+    <div class="bg-black w-full">
+        <div class="bg-black container mx-auto p-4 text-white flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo" class="circle-logo">
+                <span class="text-lg font-bold">Suicide Rate Analytics</span>
+            </div>
+            <ul class="flex space-x-4">
+                <li><a href="#home" class="hover:underline font-serif">Home</a></li>
+                <li><a href="#about" class="hover:underline font-serif">About</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header id="head" class="p-6 text-center bg-yellow-500 shadow-lg">
+        <h1 class="text-3xl font-bold text-black">Suicide Rate Analysis</h1>
+        <p class="mt-2 text-black text-lg">
+            Understanding suicide trends to improve mental health awareness and intervention efforts.
+        </p>
+    </header>
+
+    <!-- Graphs Section -->
+    <section class="container mx-auto p-6">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4">Top 20 Countries by Suicide Rate</h2>
+            
+            <!-- Year Selector -->
+            <div class="mb-6">
+                <label for="year-select" class="block text-lg font-medium text-gray-700 mb-2">Select Year:</label>
+                <select id="year-select" class="p-2 border border-gray-300 rounded-md">
+                    {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="updateChart()" class="ml-4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded">
+                    Update Chart
+                </button>
+            </div>
+            
+            <!-- Chart Container -->
+            <div class="w-full h-96">
+                <canvas id="suicideChart"></canvas>
+            </div>
+        </div>
+        
+    </section>
+<!-- Doughnut Chart by Region -->
+<section class="container mx-auto p-6">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-4">Suicide Count by Region</h2>
+        <div class="w-full h-96">
+            <canvas id="regionChart"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- Line Chart by Gender -->
+<section class="container mx-auto p-6">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-4">Suicide Count Trend by Gender</h2>
+        <div class="w-full h-96">
+            <canvas id="genderTrendChart"></canvas>
+        </div>
+    </div>
+</section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white text-center p-4">
+        <p>Copyright © 2025 Created by: Rachel, Mario, Rynald</p>
+        <section id="about" class="container mx-auto p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">About This Analysis</h2>
+                    <p>This study examines global suicide trends from 1990 to 2022, highlighting key risk factors and demographic patterns.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Why It Matters</h2>
+                    <p>Suicide is a major public health crisis. Understanding data trends helps policymakers implement targeted interventions.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Key Insights</h2>
+                    <p>Suicide rates vary significantly across gender, age, and economic conditions. Early intervention saves lives.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Our Mission</h2>
+                    <p>To provide actionable insights through data analytics, supporting mental health advocacy and suicide prevention.</p>
+                </div>
+            </div>
+        </section>
+        <!-- Economic vs Suicide Charts - Side by Side -->
+
+    </footer>
+    <script>
+        let suicideChart;
+    
+        // Function to generate random colors
+        function generateColors(count) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                // Generate HSL colors with fixed saturation and lightness but varying hue
+                const hue = Math.floor(Math.random() * 360);
+                colors.push(`hsl(${hue}, 70%, 60%)`);
+                colors.push(`hsl(${hue}, 70%, 60%)`); // Border color same as fill
+            }
+            return colors;
+        }
+    
+        // Initialize chart when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('suicideChart').getContext('2d');
+            suicideChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Suicide Rate',
+                        data: [],
+                        backgroundColor: [],
+                        borderColor: [],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Suicide Rate (per 100,000 population)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Countries'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Top 20 Countries by Suicide Rate',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} per 100,000`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Load data for the first year by default
+            updateChart();
+        });
+    
+        // Function to update chart with selected year's data
+        function updateChart() {
+            const yearSelect = document.getElementById('year-select');
+            const selectedYear = yearSelect.value;
+            
+            fetch('/get_top_countries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `year=${selectedYear}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+                
+                // Generate colors for each country
+                const backgroundColors = [];
+                const borderColors = [];
+                
+                // Use a color palette (20 distinct colors)
+                const colorPalette = [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#8AC24A', '#F06292', '#7986CB', '#A1887F',
+                    '#BA68C8', '#64B5F6', '#4DB6AC', '#81C784', '#FFD54F',
+                    '#FF8A65', '#90A4AE', '#9575CD', '#4FC3F7', '#AED581'
+                ];
+                
+                for (let i = 0; i < data.countries.length; i++) {
+                    backgroundColors.push(colorPalette[i % colorPalette.length]);
+                    borderColors.push(colorPalette[i % colorPalette.length]);
+                }
+                
+                suicideChart.data.labels = data.countries;
+                suicideChart.data.datasets[0].data = data.rates;
+                suicideChart.data.datasets[0].backgroundColor = backgroundColors;
+                suicideChart.data.datasets[0].borderColor = borderColors;
+                suicideChart.options.plugins.title.text = `Top 20 Countries by Suicide Rate (${data.year})`;
+                suicideChart.update();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        let genderChart;
+
+// Initialize gender chart
+function initGenderChart() {
+    const ctx = document.getElementById('genderChart').getContext('2d');
+    
+    fetch('/get_gender_distribution', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        genderChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.percentages,
+                    backgroundColor: [
+                        '#36A2EB', // Male - blue
+                        '#FF6384'  // Female - pink
+                    ],
+                    borderColor: [
+                        '#2980B9', // Darker blue
+                        '#E74C3C'  // Darker pink
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Global Suicide Distribution by Gender',
+                        font: {
+                            size: 18
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const count = data.counts[context.dataIndex];
+                                return `${label}: ${value.toFixed(1)}% (${count.toLocaleString()} deaths)`;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Call this in your DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', function() {
+    // Your existing chart initialization code...
+    initGenderChart();
+});
+
+let gdpSuicideChart, employmentSuicideChart;
+
+function initEconomicCharts() {
+    const gdpCtx = document.getElementById('gdpSuicideChart').getContext('2d');
+    const employmentCtx = document.getElementById('employmentSuicideChart').getContext('2d');
+    
+    fetch('/get_economic_vs_suicide', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Prepare data for scatter plots
+        const gdpData = data.map(d => ({x: d.GDPPerCapita, y: d.DeathRatePer100K}));
+        const employmentData = data.map(d => ({x: d.EmploymentPopulationRatio, y: d.DeathRatePer100K}));
+        
+        // Chart 1: GDP vs Suicide Rate
+        gdpSuicideChart = new Chart(gdpCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Countries by Year',
+                    data: gdpData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'GDP Per Capita (USD)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Suicide Rate (per 100K)'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Suicide Rate vs GDP Per Capita',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const point = data[context.dataIndex];
+                                return [
+                                    `Country: ${point.CountryName}`,
+                                    `Year: ${point.Year}`,
+                                    `GDP: $${point.GDPPerCapita.toFixed(2)}`,
+                                    `Suicide Rate: ${point.DeathRatePer100K.toFixed(2)}`
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 2: Employment vs Suicide Rate
+        employmentSuicideChart = new Chart(employmentCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Countries by Year',
+                    data: employmentData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Employment Rate (%)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Suicide Rate (per 100K)'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Suicide Rate vs Employment Rate',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const point = data[context.dataIndex];
+                                return [
+                                    `Country: ${point.CountryName}`,
+                                    `Year: ${point.Year}`,
+                                    `Employment: ${point.EmploymentPopulationRatio.toFixed(2)}%`,
+                                    `Suicide Rate: ${point.DeathRatePer100K.toFixed(2)}`
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Call this in your DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', function() {
+    initGenderChart();
+    initEconomicCharts();  // Add this line
+});
+
+// Doughnut Chart for Region Distribution
+let regionChart;
+function initRegionChart() {
+    const ctx = document.getElementById('regionChart').getContext('2d');
+    
+    fetch('/get_region_distribution', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Calculate the total sum of suicides for percentage calculation
+        const totalSuicides = data.counts.reduce((acc, count) => acc + count, 0);
+        
+        regionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.counts,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Global Suicide Distribution by Region',
+                        font: {
+                            size: 18
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                // Calculate percentage
+                                const percentage = (value / totalSuicides * 100).toFixed(2);
+                                return `${label}: ${value.toLocaleString()} deaths (${percentage}% of total)`;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Line Chart for Suicide Count Trend by Gender
+let genderTrendChart;
+function initGenderTrendChart() {
+    const ctx = document.getElementById('genderTrendChart').getContext('2d');
+    
+    fetch('/get_gender_trend', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        genderTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.years,
+                datasets: [{
+                    label: 'Male',
+                    data: data.male_counts,
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true
+                },
+                {
+                    label: 'Female',
+                    data: data.female_counts,
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Suicide Count Trend by Gender (Yearly)',
+                        font: {
+                            size: 18
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()} deaths`;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Suicide Count'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
+
+// Call both chart initialization functions when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initRegionChart();
+    initGenderTrendChart();
+});
+
+    </script>
+</body>
+</html> 

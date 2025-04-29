@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Lechar">
+	<meta name="author" content="Lechar">
+	<title>Suicide Rate Analytics</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo1.png') }}">
+    <link rel="icon" type="image/x-icon" href="../static/images/Logo1.ico">
+	<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+
+<style>
+    .circle-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    .analytics-img {
+        width: 100%;
+        height: 400px;
+        object-fit: contain;
+        transition: transform 0.3s ease-in-out;
+    }
+    .analytics-img:hover {
+        transform: scale(1.05);
+    }
+    .modal {
+    display: none; /* Ensures modal is hidden on page load */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+.graph-container { width: 100%; text-align: center; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
+        .modal-content { margin: auto; width: 80%; height: 80%; background: white; }
+        .close { color: white; font-size: 30px; cursor: pointer; position: absolute; top: 10px; right: 20px; }
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow: auto; /* Ensures content is scrollable if too large */
+    text-align: center;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+
+<body class="bg-gray-100">
+
+	<!-- Navigation Bar -->
+    <div class="bg-black w-full">
+        <div class="bg-black container mx-auto p-4 text-white flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo" class="circle-logo">
+                <span class="text-lg font-bold">Suicide Rate Analytics</span>
+            </div>
+            <ul class="flex space-x-4">
+                <li><a href="#home" class="hover:underline font-serif">Home</a></li>
+                <li><a href="#about" class="hover:underline font-serif">About</a></li>
+            </ul>
+        </div>
+    </div>
+
+	<!-- Header Section -->
+    <header id="head" class="p-6 text-center bg-yellow-500 shadow-lg">
+        <h1 class="text-3xl font-bold text-black">Suicide Rate Analysis</h1>
+        <p class="mt-2 text-black text-lg">
+            Understanding suicide trends to improve mental health awareness and intervention efforts.
+        </p>
+    
+        <!-- Filter Section -->
+        <div class="mt-4 flex flex-col md:flex-row justify-center items-center gap-4">
+            <div>
+                <label for="filterGraph" class="text-lg text-white font-semibold">Filter By:</label>
+                <select id="filterGraph" class="border text-black border-gray-300 rounded px-4 py-2 bg-white">
+                    <option value="all">All Graphs</option>
+                    <option value="trends">Trends Over Time</option>
+                    <option value="Year">By Year Analysis</option>
+                    <option value="region">Regional Distribution</option>
+                    <option value="gender">Gender Comparison</option>
+                </select>
+            </div>
+    
+            <!-- Search Box -->
+            <div>
+                <input 
+                    type="text" 
+                    id="searchGraph" 
+                    class="border text-black border-gray-300 rounded px-4 py-2 w-60" 
+                    placeholder="Search by title..."
+                >
+            </div>
+        </div>
+    </header>
+    
+
+
+	<!-- Graphs Section -->
+
+<!-- Graphs Section -->
+<!-- Graphs Section -->
+<section class="container mx-auto p-6">
+    <div id="graphsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for title, description, graph in graphs %}
+        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 graph-card"
+        data-category="{{title}}"
+             onclick="openGraphModal(`{{ title }}`, `graph-{{ loop.index }}`)">
+            <h2 class="mt-4 text-lg font-bold text-gray-900">{{ title }}</h2>
+            <p class="text-sm text-gray-700">{{ description }}</p>
+            <div id="graph-{{ loop.index }}" class="graph-container">
+                {{ graph | safe }} <!-- Make sure the graph is correctly included here -->
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Modal -->
+<div id="graphModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl h-[90vh] flex flex-col">
+        <button class="absolute top-2 right-4 text-gray-700 text-2xl font-bold hover:text-gray-900" onclick="closeGraphModal()">&times;</button>
+        <h2 id="modalTitle" class="text-xl font-bold text-center mb-4"></h2>
+        <div id="modalGraph" class="flex-grow w-full h-full"></div> <!-- Empty div for re-rendering -->
+    </div>
+</div>
+
+
+
+
+
+
+	<!-- Footer -->
+    <footer class="bg-black text-white text-center p-4">
+        <p>Copyright © 2025 Created by: Rachel, Mario, Rynald</p>
+        <section id="about" class="container mx-auto p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">About This Analysis</h2>
+                    <p>This study examines global suicide trends from 1990 to 2022, highlighting key risk factors and demographic patterns.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Why It Matters</h2>
+                    <p>Suicide is a major public health crisis. Understanding data trends helps policymakers implement targeted interventions.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Key Insights</h2>
+                    <p>Suicide rates vary significantly across gender, age, and economic conditions. Early intervention saves lives.</p>
+                </div>
+                <div class="bg-blue-960 text-white p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold">Our Mission</h2>
+                    <p>To provide actionable insights through data analytics, supporting mental health advocacy and suicide prevention.</p>
+                </div>
+            </div>
+        </section>
+
+
+    </footer>
+    
+    <!-- JavaScript for Filtering Functionality -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterSelect = document.getElementById('filterGraph');
+    const searchInput = document.getElementById('searchGraph');
+    const graphCards = document.querySelectorAll('.graph-card');
+
+    function filterGraphs() {
+        const filterValue = filterSelect.value.toLowerCase();
+        const searchValue = searchInput.value.toLowerCase();
+
+        graphCards.forEach(card => {
+            const cardCategory = card.getAttribute('data-category').toLowerCase();
+            const title = card.querySelector('h2').innerText.toLowerCase();
+
+            const matchesFilter = filterValue === 'all' || cardCategory.includes(filterValue);
+            const matchesSearch = title.includes(searchValue);
+
+            if (matchesFilter && matchesSearch) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+
+    filterSelect.addEventListener('change', filterGraphs);
+    searchInput.addEventListener('keyup', filterGraphs);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    window.openGraphModal = function (title, graphId) {
+        console.log("Opening modal for graph:", graphId);
+
+        document.getElementById("modalTitle").innerText = title;
+
+        const graphContainer = document.getElementById(graphId);
+        const modalGraphContainer = document.getElementById("modalGraph");
+
+        if (!graphContainer) {
+            console.error("Graph container not found:", graphId);
+            return;
+        }
+
+        // Find the Plotly graph inside the clicked card
+        const plotlyGraph = graphContainer.querySelector(".plotly-graph-div");
+
+        if (plotlyGraph) {
+            // Get the Plotly figure data from the original graph
+            Plotly.toImage(plotlyGraph).then(function (imageData) {
+                // Clear modal content
+                modalGraphContainer.innerHTML = `<img src="${imageData}" class="w-full h-full object-contain"/>`;
+            }).catch(function (error) {
+                console.error("Error converting Plotly graph to image:", error);
+            });
+        } else {
+            console.error("Plotly graph not found in modal.");
+        }
+
+        // Show the modal
+        document.getElementById("graphModal").classList.remove("hidden");
+    };
+
+    window.closeGraphModal = function () {
+        document.getElementById("graphModal").classList.add("hidden");
+        document.getElementById("modalGraph").innerHTML = ""; // Clear modal content
+    };
+});
+
+</script>
+
+
+</body>
+</html>
