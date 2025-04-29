@@ -38,18 +38,31 @@ def get_top_countries():
         'year': year
     })
 
-
-# Add these new endpoints to your existing app.py
 @app.route('/get_region_distribution', methods=['POST'])
 def get_region_distribution():
-    # Group by Region and sum the suicide counts
-    region_data = df_suicide.groupby('RegionName')['SuicideCount'].sum().reset_index()
-
+    # Clean and aggregate the data
+    region_data = (
+        df_suicide
+        # Remove rows with invalid suicide counts
+        .loc[df_suicide['SuicideCount'] > 0]
+        # Group by Region and sum the suicide counts
+        .groupby('RegionName', as_index=False)['SuicideCount']
+        .sum()
+        # Sort by suicide count descending
+        .sort_values('SuicideCount', ascending=False)
+        # Reset index
+        .reset_index(drop=True)
+    )
+    
+    # Debugging: print the data being returned
+    print("Region Distribution Data:")
+    print(region_data)
+    print(f"Total suicides: {region_data['SuicideCount'].sum()}")
+    
     return jsonify({
         'labels': region_data['RegionName'].tolist(),
-        'counts': region_data['SuicideCount'].tolist()
+        'counts': region_data['SuicideCount'].astype(int).tolist()  # Convert to int for cleaner JSON
     })
-
 @app.route('/get_gender_trend', methods=['POST'])
 def get_gender_trend():
     # Group by Year and Sex to get the sum of suicide counts over time

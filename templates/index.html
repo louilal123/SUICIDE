@@ -282,60 +282,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let regionChart;
 function initRegionChart() {
-    const ctx = document.getElementById('regionChart').getContext('2d');
+  const ctx = document.getElementById('regionChart').getContext('2d');
+  
+  fetch('/get_region_distribution', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    const totalSuicides = data.counts.reduce((acc, count) => acc + count, 0);
     
-    fetch('/get_region_distribution', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        const totalSuicides = data.counts.reduce((acc, count) => acc + count, 0);
-        
-        regionChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.counts,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
-                    ],
-                    borderColor: '#fff',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Global Suicide Distribution by Region',
-                        font: {
-                            size: 18
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const percentage = (value / totalSuicides * 100).toFixed(2);
-                                return `${label}: ${value.toLocaleString()} deaths (${percentage}% of total)`;
-                            }
-                        }
-                    },
-                    legend: {
-                        position: 'right'
-                    }
-                }
+    // Debug: Log total and check if it matches backend
+    console.log("Total suicides (frontend):", totalSuicides);
+    console.log("Region breakdown:", data.labels.map((label, i) => ({
+      region: label,
+      count: data.counts[i],
+      percent: (data.counts[i] / totalSuicides * 100).toFixed(3) + "%"
+    })));
+
+    regionChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          data: data.counts,
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Global Suicide Distribution by Region', font: { size: 18 } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percentage = (value / totalSuicides * 100).toFixed(3); // 3 decimals
+                return `${label}: ${value.toLocaleString()} deaths (${percentage}% of total)`;
+              }
             }
-        });
-    })
-    .catch(error => console.error('Error:', error));
+          },
+          legend: { position: 'right' }
+        }
+      }
+    });
+  })
+  .catch(error => console.error('Error:', error));
 }
 
 let genderTrendChart;
