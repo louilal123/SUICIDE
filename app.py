@@ -7,7 +7,9 @@ app = Flask(__name__)
 # Load both CSV files
 suicide_rate_path = os.path.join('data', 'suiciderateall.csv')
 suicide_data_path = os.path.join('data', 'suicide_rates.csv')
-
+# At the top with your other dataframe loads
+age_std_path = os.path.join('data', 'age_std_suicide_rates.csv')
+df_age_std = pd.read_csv(age_std_path)
 # Load the country rate data
 df_rates = pd.read_csv(suicide_rate_path, encoding='latin1')
 year_columns = [col for col in df_rates.columns if col.isdigit()]
@@ -40,11 +42,15 @@ def get_top_countries():
 
 @app.route('/get_region_distribution', methods=['POST'])
 def get_region_distribution():
+    # Load the age-standardized data
+    age_std_path = os.path.join('data', 'age_std_suicide_rates.csv')
+    df_age_std = pd.read_csv(age_std_path)
+    
     # Clean and aggregate the data
     region_data = (
-        df_suicide
+        df_age_std
         # Remove rows with invalid suicide counts
-        .loc[df_suicide['SuicideCount'] > 0]
+        .loc[df_age_std['SuicideCount'] > 0]
         # Group by Region and sum the suicide counts
         .groupby('RegionName', as_index=False)['SuicideCount']
         .sum()
@@ -55,13 +61,13 @@ def get_region_distribution():
     )
     
     # Debugging: print the data being returned
-    print("Region Distribution Data:")
+    print("Region Distribution Data from age_std_suicide_rates.csv:")
     print(region_data)
     print(f"Total suicides: {region_data['SuicideCount'].sum()}")
     
     return jsonify({
         'labels': region_data['RegionName'].tolist(),
-        'counts': region_data['SuicideCount'].astype(int).tolist()  # Convert to int for cleaner JSON
+        'counts': region_data['SuicideCount'].astype(int).tolist()
     })
 @app.route('/get_gender_trend', methods=['POST'])
 def get_gender_trend():
